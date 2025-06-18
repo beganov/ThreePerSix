@@ -17,128 +17,150 @@ type Card struct {
 	val int
 }
 
+type GameState struct {
+	deck        []Card
+	out         []Card
+	hands       [][]Card
+	openeds     [][]Card
+	closeds     [][]Card
+	playerCount int
+	iamind      int
+}
+
 func main() {
-	playerCount, iamind, deck, hands, openeds, closeds := Initialization()
-	Game(deck, hands, openeds, closeds, playerCount, iamind)
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	var g GameState
+	// 	g.Initialization()
+	// 	g.Game()
+	// }()
+	// wg.Wait()
+	var g GameState
+	g.Initialization()
+	g.Game()
 }
 
-func Initialization() (int, int, []Card, [][]Card, [][]Card, [][]Card) {
-	var playerCount int
-	deck := make([]Card, cardQuantity)
-	openeds := make([][]Card, 0, playerCount)
-	closeds := make([][]Card, 0, playerCount)
-	hands := make([][]Card, 0, playerCount)
-	fmt.Scan(&playerCount)
-	deck = DeckInitialization(deck)
-	hands, closeds, openeds, deck = HandInitialization(hands, closeds, openeds, deck, playerCount)
-	hands, openeds = PlayerInitialization(hands, openeds)
-	iamind := rand.IntN(playerCount)
-	hands, openeds, iamind = Orderer(iamind, playerCount, hands, openeds)
-	return playerCount, iamind, deck, hands, openeds, closeds
+func (g GameState) String() string {
+	return fmt.Sprintf("Iam %d, hands: %v\n", g.iamind, g.hands)
 }
 
-func Orderer(iamind, playerCount int, hands, openeds [][]Card) ([][]Card, [][]Card, int) {
+func (g *GameState) Initialization() {
+	g.deck = make([]Card, cardQuantity)
+	g.openeds = make([][]Card, 0, g.playerCount)
+	g.closeds = make([][]Card, 0, g.playerCount)
+	g.hands = make([][]Card, 0, g.playerCount)
+	fmt.Scan(&g.playerCount) //g.playerCount = 2 + rand.IntN(4) //
+	g.DeckInitialization()
+	g.HandInitialization()
+	g.PlayerInitialization()
+	g.iamind = 1 + rand.IntN(g.playerCount-1)
+	g.Orderer()
+}
+
+func (g *GameState) Orderer() {
 	min := MaxValue
 	mini := 0
-	for i := range hands {
-		sortCard(hands[i])
-		if min > hands[i][0].val {
-			min = hands[i][0].val
+	for i := range g.hands {
+		sortCard(g.hands[i])
+		if min > g.hands[i][0].val {
+			min = g.hands[i][0].val
 			mini = i
 		}
 	}
+
 	if mini != 0 {
-		hands[0], hands[mini] = hands[mini], hands[0]
+		g.hands[0], g.hands[mini] = g.hands[mini], g.hands[0]
+		g.openeds[0], g.openeds[mini] = g.openeds[mini], g.openeds[0]
 	}
-	if mini == iamind {
-		iamind = 0
+	if mini == len(g.hands)-1 {
+		g.iamind = 0
 	}
-	if iamind != len(hands)-1 {
-		hands[iamind], hands[len(hands)-1] = hands[len(hands)-1], hands[iamind]
-		openeds[iamind], openeds[len(hands)-1] = openeds[len(hands)-1], openeds[iamind]
+
+	fmt.Print(g.hands)
+	if g.iamind != len(g.hands)-1 && g.iamind != 0 {
+		g.hands[g.iamind], g.hands[len(g.hands)-1] = g.hands[len(g.hands)-1], g.hands[g.iamind]
+		g.openeds[g.iamind], g.openeds[len(g.hands)-1] = g.openeds[len(g.hands)-1], g.openeds[g.iamind]
 	}
-	return hands, openeds, iamind
 }
 
-func DeckInitialization(deck []Card) []Card {
-	for i := range deck {
-		deck[i].id = i
+func (g *GameState) DeckInitialization() {
+	for i := range g.deck {
+		g.deck[i].id = i
 	}
 	delta := (MaxValue - MinValue)
 	for i := MinValue; i < MaxValue; i++ {
-		deck[i].val = i
-		deck[i+delta].val = i
-		deck[i+delta*2].val = i
-		deck[i+delta*3].val = i
+		g.deck[i].val = i
+		g.deck[i+delta].val = i
+		g.deck[i+delta*2].val = i
+		g.deck[i+delta*3].val = i
 	}
-	rand.Shuffle(len(deck), func(i, j int) {
-		deck[i], deck[j] = deck[j], deck[i]
+	rand.Shuffle(len(g.deck), func(i, j int) {
+		g.deck[i], g.deck[j] = g.deck[j], g.deck[i]
 	})
-	return deck
 }
 
-func PlayerInitialization(hands, openeds [][]Card) ([][]Card, [][]Card) {
+func (g *GameState) PlayerInitialization() {
 	z := 0
 	var openedShoosen int
 	newSlice4 := make([]Card, 0, packSize)
 	for z != packSize {
-		fmt.Println(hands[len(hands)-1])
-		fmt.Scan(&openedShoosen)
-		for i := range hands[len(hands)-1] {
-			if hands[len(hands)-1][i].val == openedShoosen {
+		fmt.Println(g.hands[len(g.hands)-1])
+		fmt.Scan(&openedShoosen) //openedShoosen = g.hands[len(g.hands)-1][0].val //
+		for i := range g.hands[len(g.hands)-1] {
+			if g.hands[len(g.hands)-1][i].val == openedShoosen {
 				z++
-				newSlice4, hands[len(hands)-1] = decksUpdate(newSlice4, hands[len(hands)-1], i)
+				newSlice4, g.hands[len(g.hands)-1] = decksUpdate(newSlice4, g.hands[len(g.hands)-1], i)
 				break
 			}
 		}
 	}
-	openeds = append(openeds, newSlice4)
-	return hands, openeds
+	g.openeds = append(g.openeds, newSlice4)
 }
 
-func HandInitialization(hands, closeds, openeds [][]Card, deck []Card, playerCount int) ([][]Card, [][]Card, [][]Card, []Card) {
-	for i := 0; i < playerCount; i++ {
+func (g *GameState) HandInitialization() {
+	for i := 0; i < g.playerCount; i++ {
 		newSlice := make([]Card, packSize)
-		copy(newSlice, deck[i*packSize*3:i*packSize*4])
-		closeds = append(closeds, newSlice)
+		copy(newSlice, g.deck[(i*3)*packSize:(i*3+1)*packSize])
+		g.closeds = append(g.closeds, newSlice)
 		newSlice2 := make([]Card, packSize*2)
-		copy(newSlice2, deck[i*packSize*4:(i+1)*packSize*3])
-		hands = append(hands, newSlice2)
+		copy(newSlice2, g.deck[(i*3+1)*packSize:(i+1)*packSize*3])
+		g.hands = append(g.hands, newSlice2)
 	}
-	deck = deck[playerCount*9:]
-	for i := 0; i < playerCount-1; i++ {
-		sortCard(hands[i])
+	g.deck = g.deck[g.playerCount*packSize*3:]
+	for i := 0; i < g.playerCount-1; i++ {
+		sortCard(g.hands[i])
 		newSlice3 := make([]Card, packSize)
-		copy(newSlice3, hands[i][packSize:])
-		openeds = append(openeds, newSlice3)
-		hands[i] = hands[i][:packSize]
+		copy(newSlice3, g.hands[i][packSize:])
+		g.openeds = append(g.openeds, newSlice3)
+		g.hands[i] = g.hands[i][:packSize]
 	}
-	return hands, closeds, openeds, deck
 }
 
-func Game(deck []Card, hands, openeds, closeds [][]Card, playerCount, iamind int) {
+func (g *GameState) Game() {
 	c := 0
-	out := make([]Card, 0, cardQuantity)
+	g.out = make([]Card, 0, cardQuantity)
 	istake := false
 	var card int
 	var flag bool
 	var counter int
-	for counter < playerCount {
+	for counter < g.playerCount {
 		c++
 		counter = 1
-		for i := 0; i < playerCount; i++ {
+		for i := 0; i < g.playerCount; i++ {
 			flag = false
 			card = -2
 			time.Sleep(time.Second / 2)
 			for !flag {
-				if len(hands[i]) == 0 && len(closeds[i]) == 0 {
+				if len(g.hands[i]) == 0 && len(g.closeds[i]) == 0 {
 					counter++
 					break
 				}
-				sortCard(hands[i])
-				outer(c, i, hands[iamind], out, openeds, closeds, hands)
-				hands[i], out, card, flag, istake = GiveCardLogic(hands[i], out, card, i, iamind, flag, istake)
-				deck, hands[i], openeds[i], closeds[i] = TakeCard(deck, hands[i], openeds[i], closeds[i], istake)
+				sortCard(g.hands[i])
+				outer(c, i, g.hands[g.iamind], g.out, g.openeds, g.closeds, g.hands)
+				g.hands[i], g.out, card, flag, istake = GiveCardLogic(g.hands[i], g.out, card, i, g.iamind, flag, istake)
+				g.deck, g.hands[i], g.openeds[i], g.closeds[i] = TakeCard(g.deck, g.hands[i], g.openeds[i], g.closeds[i], istake)
 
 			}
 		}
@@ -201,6 +223,9 @@ func TakeCard(deck, hands, openeds, closeds []Card, istake bool) ([]Card, []Card
 
 func GiveCard(out, hands []Card, isAm bool) ([]Card, []Card, bool, int) {
 	input := MaxValue
+	// if isAm {
+	// 	isAm = false
+	// }
 	if isAm {
 		fmt.Println(hands)
 		fmt.Scan(&input)
@@ -241,6 +266,9 @@ func GiveCard(out, hands []Card, isAm bool) ([]Card, []Card, bool, int) {
 }
 
 func ReGiveCard(out, hands []Card, value int, isIam bool) ([]Card, []Card, bool) {
+	// if isIam {
+	// 	isIam = false
+	// }
 	if isIam {
 		var input int
 		fmt.Scan(&input)
