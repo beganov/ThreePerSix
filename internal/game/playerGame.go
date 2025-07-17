@@ -17,13 +17,12 @@ func (g *GameState) Move(playerId int, playerMove int) *GameState {
 func (g *GameState) LeaveGame(playerId int) {
 	g.Lock()
 	defer g.Unlock()
-	delete(g.Alsoiamind, g.Iamind[playerId])
-	delete(g.Iamindalso, g.Iamind[playerId])
-	g.ch[playerId] <- g.Hands[g.Iamind[playerId]][0].Val
-	g.ch[playerId] <- g.Hands[g.Iamind[playerId]][0].Val
-	g.ch[playerId] <- g.Hands[g.Iamind[playerId]][0].Val
-	g.ch[playerId] <- g.Hands[g.Iamind[playerId]][0].Val
-	delete(g.Iamind, playerId)
+	delete(g.ReverceIdMap, g.IdMap[playerId])
+	g.ch[playerId] <- g.Hands[g.IdMap[playerId]][0].Val
+	g.ch[playerId] <- g.Hands[g.IdMap[playerId]][0].Val
+	g.ch[playerId] <- g.Hands[g.IdMap[playerId]][0].Val
+	g.ch[playerId] <- g.Hands[g.IdMap[playerId]][0].Val
+	delete(g.IdMap, playerId)
 	delete(g.ch, playerId)
 
 }

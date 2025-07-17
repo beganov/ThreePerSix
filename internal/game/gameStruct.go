@@ -14,8 +14,7 @@ type GameState struct {
 	Openeds        [][]card.Card `json:"openeds,omitempty"`
 	Closeds        [][]card.Card `json:"closeds,omitempty"`
 	MaxPlayerCount int           `json:"maxPlayerCount,omitempty"`
-	Iamind         map[int]int   `json:"iamind,omitempty"`
-	Alsoiamind     map[int]int   `json:"alsoIamind,omitempty"`
-	Iamindalso     map[int]int   `json:"iamindalso,omitempty"`
+	IdMap          map[int]int   `json:"idMap,omitempty"`        //key = playerId, value = placement
+	ReverceIdMap   map[int]int   `json:"reverceIdMap,omitempty"` //key = placement, value = playerId
 	ch             map[int]chan int
 }

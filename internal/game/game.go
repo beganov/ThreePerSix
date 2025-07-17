@@ -2,10 +2,71 @@ package game
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/beganov/gingonicserver/internal/card"
 	"github.com/beganov/gingonicserver/internal/gameConst"
+	"github.com/beganov/gingonicserver/internal/placement"
 )
+
+func (g *GameState) PreInitialization(MaxPlayerCount int, Players map[int]int) {
+	g.IdMap, g.ch = ChannelsInit(Players)
+	g.MaxPlayerCount = MaxPlayerCount
+	g.Deck = card.NewDeck()
+	g.Hands, g.Closeds, g.Deck = card.HandInitialization(MaxPlayerCount, g.Deck)
+	g.Hands, g.Openeds = card.OpenedsInitialization(MaxPlayerCount, len(g.IdMap), g.Hands)
+}
+
+func (g *GameState) Initialization() {
+	orderMap := g.PlayerInitialization()
+	g.Hands, g.Openeds = placement.ShufflePlayer(g.Hands, g.Openeds, orderMap)   //Расставляет игроков по случайным позициям
+	g.Hands, g.Openeds, g.IdMap = placement.Orderer(g.Hands, g.Openeds, g.IdMap) //Передает первый ход игроку с тройкой
+	g.ReverceIdMap = keyValueReverse(g.IdMap)
+}
+
+func (g *GameState) PlayerInitialization() map[int]int {
+	shuffleArr := placement.NewPlacementArray(g.MaxPlayerCount, len(g.IdMap))
+
+	EndOfArray := shuffleArr[len(shuffleArr)-len(g.IdMap):]
+	g.IdMap = ArraytoMap(EndOfArray, g.IdMap)
+
+	var wg sync.WaitGroup
+	for i := range g.IdMap {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			g.Lock()
+			defer g.Unlock()
+			g.OpenedsPlayerInitialization(i, g.IdMap[i])
+		}()
+
+	}
+	wg.Wait()
+
+	var orderMap map[int]int
+	g.IdMap, orderMap = placement.TakeRandomPlacement(shuffleArr, g.IdMap)
+	return orderMap
+}
+
+func (g *GameState) OpenedsPlayerInitialization(playerId, k int) {
+	z := 0
+	var Openedshoosen int
+	newSlice4 := make([]card.Card, 0, gameConst.PackSize)
+	for z != gameConst.PackSize {
+		fmt.Println(g.Hands[k])
+		Openedshoosen = <-g.ch[playerId]
+		//fmt.Scan(&Openedshoosen) //
+		//Openedshoosen = g.Hands[len(g.Hands)-1][0].Val //\
+		for i := range g.Hands[k] {
+			if g.Hands[k][i].Val == Openedshoosen {
+				z++
+				newSlice4, g.Hands[k] = card.DecksUpdate(newSlice4, g.Hands[k], i)
+				break
+			}
+		}
+	}
+	g.Openeds[k] = newSlice4
+}
 
 func (g *GameState) Game() {
 	c := 0
@@ -26,9 +87,9 @@ func (g *GameState) Game() {
 					break
 				}
 				card.SortCard(g.Hands[i])
-				_, ok := g.Iamindalso[i]
+				_, ok := g.ReverceIdMap[i]
 				outer(c, i, g.Out, g.Openeds, g.Closeds, g.Hands)
-				g.Hands[i], g.Out, cardState, flag, istake = card.GiveCardLogic(g.Hands[i], g.Out, cardState, i, ok, flag, istake, g.ch[g.Iamindalso[i]])
+				g.Hands[i], g.Out, cardState, flag, istake = card.GiveCardLogic(g.Hands[i], g.Out, cardState, i, ok, flag, istake, g.ch[g.ReverceIdMap[i]])
 				g.Deck, g.Hands[i], g.Openeds[i], g.Closeds[i] = card.TakeCard(g.Deck, g.Hands[i], g.Openeds[i], g.Closeds[i], istake)
 
 			}
@@ -36,21 +97,4 @@ func (g *GameState) Game() {
 
 	}
 	fmt.Println("GameEnd")
-}
-
-func outer(c, i int, Out []card.Card, Openeds, Closeds, allHands [][]card.Card) {
-	allHandsLens := make([]int, len(allHands))
-	allClosedsLens := make([]int, len(allHands))
-	for j := range allHands {
-		allHandsLens[j] = len(allHands[j])
-		allClosedsLens[j] = len(Closeds[j])
-	}
-	fmt.Printf("Turn:  %d\n", c)
-	fmt.Printf("Player:  %d\n", i)
-	fmt.Printf("Turn %d \n player %d hand: %v \n table %v \n Openeds %v \n", c, i, allHands[i], Out, Openeds)
-	fmt.Printf("Len Closeds %d, Len Hands %d", allClosedsLens, allHandsLens)
-}
-
-func (g GameState) String() string {
-	return fmt.Sprintf("Iam %d, Hands: %v\n", g.Iamind, g.Hands)
 }

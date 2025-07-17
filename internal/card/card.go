@@ -30,32 +30,33 @@ func NewDeck() []Card {
 	return deck
 }
 
-func cardDelete(arr []Card, index int) []Card {
-	arr[index] = arr[len(arr)-1]
-	arr = arr[:len(arr)-1]
-	return arr
+func HandInitialization(maxPlayerCount int, deck []Card) ([][]Card, [][]Card, []Card) {
+	hands := make([][]Card, 0, maxPlayerCount)
+	closeds := make([][]Card, 0, maxPlayerCount)
+	for i := 0; i < maxPlayerCount; i++ {
+		newSlice := make([]Card, gameConst.PackSize)
+		copy(newSlice, deck[(i*3)*gameConst.PackSize:(i*3+1)*gameConst.PackSize])
+		closeds = append(closeds, newSlice)
+		newSlice2 := make([]Card, gameConst.PackSize*2)
+		copy(newSlice2, deck[(i*3+1)*gameConst.PackSize:(i+1)*gameConst.PackSize*3])
+		hands = append(hands, newSlice2)
+	}
+	deck = deck[maxPlayerCount*gameConst.PackSize*3:]
+
+	return hands, closeds, deck
 }
 
-func DecksUpdate(arr, arr2 []Card, index int) ([]Card, []Card) {
-	arr = append(arr, arr2[index])
-	arr2 = cardDelete(arr2, index)
-	return arr, arr2
-}
+func OpenedsInitialization(maxPlayerCount, realPlayerCount int, hands [][]Card) ([][]Card, [][]Card) {
+	openeds := make([][]Card, maxPlayerCount)
+	for i := 0; i < maxPlayerCount-realPlayerCount; i++ {
+		SortCard(hands[i])
+		newSlice3 := make([]Card, gameConst.PackSize)
+		copy(newSlice3, hands[i][gameConst.PackSize:])
+		openeds[i] = newSlice3
+		hands[i] = hands[i][:gameConst.PackSize]
+	}
+	return hands, openeds
 
-func SortCard(Hands []Card) {
-	sort.Slice(Hands, func(k, l int) bool {
-		if isSpecial(Hands[k].Val) {
-			return false
-		}
-		if isSpecial(Hands[l].Val) {
-			return true
-		}
-		return Hands[k].Val < Hands[l].Val
-	})
-}
-
-func isSpecial(Val int) bool {
-	return Val == 2 || Val == 10 || Val == 0
 }
 
 func GiveCardLogic(Hands, Out []Card, cardState, i int, iamindFlag, flag, istake bool, ch <-chan int) ([]Card, []Card, int, bool, bool) {
@@ -139,12 +140,8 @@ func GiveCard(Out, Hands []Card, isAm bool, ch <-chan int) ([]Card, []Card, bool
 }
 
 func ReGiveCard(Out, Hands []Card, Value int, isIam bool, ch <-chan int) ([]Card, []Card, bool) {
-	// if isIam {
-	// 	isIam = false
-	// }
 	if isIam {
 		var input int
-		//fmt.Scan(&input)
 		input = <-ch
 		if input != Value {
 			return Out, Hands, true
@@ -160,31 +157,30 @@ func ReGiveCard(Out, Hands []Card, Value int, isIam bool, ch <-chan int) ([]Card
 
 }
 
-func HandInitialization(maxPlayerCount int, deck []Card) ([][]Card, [][]Card, []Card) {
-	hands := make([][]Card, 0, maxPlayerCount)
-	closeds := make([][]Card, 0, maxPlayerCount)
-	for i := 0; i < maxPlayerCount; i++ {
-		newSlice := make([]Card, gameConst.PackSize)
-		copy(newSlice, deck[(i*3)*gameConst.PackSize:(i*3+1)*gameConst.PackSize])
-		closeds = append(closeds, newSlice)
-		newSlice2 := make([]Card, gameConst.PackSize*2)
-		copy(newSlice2, deck[(i*3+1)*gameConst.PackSize:(i+1)*gameConst.PackSize*3])
-		hands = append(hands, newSlice2)
-	}
-	deck = deck[maxPlayerCount*gameConst.PackSize*3:]
-
-	return hands, closeds, deck
+func SortCard(Hands []Card) {
+	sort.Slice(Hands, func(k, l int) bool {
+		if isSpecial(Hands[k].Val) {
+			return false
+		}
+		if isSpecial(Hands[l].Val) {
+			return true
+		}
+		return Hands[k].Val < Hands[l].Val
+	})
 }
 
-func OpenedsInitialization(maxPlayerCount, realPlayerCount int, hands [][]Card) ([][]Card, [][]Card) {
-	openeds := make([][]Card, 0, maxPlayerCount)
-	for i := 0; i < maxPlayerCount-realPlayerCount; i++ {
-		SortCard(hands[i])
-		newSlice3 := make([]Card, gameConst.PackSize)
-		copy(newSlice3, hands[i][gameConst.PackSize:])
-		openeds = append(openeds, newSlice3)
-		hands[i] = hands[i][:gameConst.PackSize]
-	}
-	return hands, openeds
+func cardDelete(arr []Card, index int) []Card {
+	arr[index] = arr[len(arr)-1]
+	arr = arr[:len(arr)-1]
+	return arr
+}
 
+func DecksUpdate(arr, arr2 []Card, index int) ([]Card, []Card) {
+	arr = append(arr, arr2[index])
+	arr2 = cardDelete(arr2, index)
+	return arr, arr2
+}
+
+func isSpecial(Val int) bool {
+	return Val == 2 || Val == 10 || Val == 0
 }

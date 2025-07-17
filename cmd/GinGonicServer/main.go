@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/beganov/gingonicserver/internal/card"
-	"github.com/beganov/gingonicserver/internal/game"
 	"github.com/beganov/gingonicserver/internal/player"
 	"github.com/beganov/gingonicserver/internal/room"
 	"github.com/beganov/gingonicserver/internal/storage"
@@ -93,25 +90,6 @@ func (gs *gameServer) joinRoom(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"playerId": playerID})
-}
-
-func debugPrintGameState(g *game.GameState) {
-	fmt.Println("---- DEBUG GameState ----")
-	fmt.Printf("MaxPlayerCount = %d\n", g.MaxPlayerCount)
-	fmt.Printf("Iamind = %d\n", g.Iamind)
-	printNested := func(name string, outer [][]card.Card) {
-		for i := range outer {
-			if outer[i] == nil {
-				fmt.Printf("%s[%d] = nil\n", name, i)
-			} else {
-				fmt.Printf("%s[%d] = len %d\n", name, i, len(outer[i]))
-			}
-		}
-	}
-	printNested("Hands", g.Hands)
-	printNested("Openeds", g.Openeds)
-	printNested("Closeds", g.Closeds)
-	fmt.Println("-------------------------")
 }
 
 func (gs *gameServer) leaveRoom(c *gin.Context) {

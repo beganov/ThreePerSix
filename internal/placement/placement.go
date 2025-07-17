@@ -1,11 +1,13 @@
 package placement
 
 import (
+	"math/rand/v2"
+
 	"github.com/beganov/gingonicserver/internal/card"
 	"github.com/beganov/gingonicserver/internal/gameConst"
 )
 
-func Orderer(hands, openeds [][]card.Card, iamind, alsoiamind map[int]int) ([][]card.Card, [][]card.Card, map[int]int, map[int]int) {
+func Orderer(hands, openeds [][]card.Card, idMap map[int]int) ([][]card.Card, [][]card.Card, map[int]int) {
 	min := gameConst.MaxValue
 	mini := 0
 	for i := range hands {
@@ -20,34 +22,72 @@ func Orderer(hands, openeds [][]card.Card, iamind, alsoiamind map[int]int) ([][]
 		hands[0], hands[mini] = hands[mini], hands[0]
 		openeds[0], openeds[mini] = openeds[mini], openeds[0]
 	}
-	for i, j := range iamind {
-		if j == mini {
-			iamind[i] = 0
-			alsoiamind[i] = 0
+	placement := 0
+	for i, j := range idMap {
+		if j == 0 {
+			placement = i
+			break
 		}
 	}
-	return hands, openeds, iamind, alsoiamind
+	for i, j := range idMap {
+		if j == mini {
+			if _, ok := idMap[placement]; ok {
+				idMap[placement] = idMap[i]
+			}
+			idMap[i] = 0
+			break
+		}
+	}
+
+	return hands, openeds, idMap
 }
 
-func ShufflePlayer(hands, openeds [][]card.Card, alsoiamind map[int]int) ([][]card.Card, [][]card.Card, map[int]int) {
-
+func ShufflePlayer(hands, openeds [][]card.Card, orderMap map[int]int) ([][]card.Card, [][]card.Card) {
 	for i := range hands {
-		if _, ok := alsoiamind[i]; !ok {
-			alsoiamind[i] = i
+		if _, ok := orderMap[i]; !ok {
+			orderMap[i] = i
 		}
 	}
 	flag := true
 	for flag {
 		flag = false
 		for i := range hands {
-			if i != alsoiamind[i] {
+			if i != orderMap[i] {
 				flag = true
-				hands[i], hands[alsoiamind[i]] = hands[alsoiamind[i]], hands[i]
-				openeds[i], openeds[alsoiamind[i]] = openeds[alsoiamind[i]], openeds[i]
-				alsoiamind[alsoiamind[i]] = alsoiamind[i]
-				alsoiamind[i] = i
+				hands[i], hands[orderMap[i]] = hands[orderMap[i]], hands[i]
+				openeds[i], openeds[orderMap[i]] = openeds[orderMap[i]], openeds[i]
+				orderMap[orderMap[i]] = orderMap[i]
+				orderMap[i] = i
 			}
 		}
 	}
-	return hands, openeds, alsoiamind
+	return hands, openeds
+}
+
+func TakeRandomPlacement(shuffleArr []int, idMap map[int]int) (map[int]int, map[int]int) {
+	orderMap := make(map[int]int, len(idMap))
+	rand.Shuffle(len(shuffleArr), func(i, j int) {
+		shuffleArr[i], shuffleArr[j] = shuffleArr[j], shuffleArr[i]
+	})
+	j := 0
+	for i := range idMap {
+		orderMap[idMap[i]] = shuffleArr[j]
+		idMap[i] = shuffleArr[j]
+		j++
+	}
+	return idMap, orderMap
+}
+
+func NewPlacementArray(maxPlayerCount, realPlayerCount int) []int {
+	shuffleArr := make([]int, 0, maxPlayerCount)
+	for i := 0; i < maxPlayerCount; i++ {
+		if i != 0 {
+			shuffleArr = append(shuffleArr, i)
+		} else {
+			if realPlayerCount == maxPlayerCount {
+				shuffleArr = append(shuffleArr, i)
+			}
+		}
+	}
+	return shuffleArr
 }
