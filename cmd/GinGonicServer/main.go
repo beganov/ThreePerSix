@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/beganov/gingonicserver/internal/game"
 	"github.com/beganov/gingonicserver/internal/player"
 	"github.com/beganov/gingonicserver/internal/room"
 	"github.com/beganov/gingonicserver/internal/storage"
@@ -94,25 +92,6 @@ func (gs *gameServer) joinRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playerId": playerID})
 }
 
-func debugPrintGameState(g *game.GameState) {
-	fmt.Println("---- DEBUG GameState ----")
-	fmt.Printf("MaxPlayerCount = %d\n", g.MaxPlayerCount)
-	fmt.Printf("Iamind = %d\n", g.Iamind)
-	printNested := func(name string, outer [][]game.Card) {
-		for i := range outer {
-			if outer[i] == nil {
-				fmt.Printf("%s[%d] = nil\n", name, i)
-			} else {
-				fmt.Printf("%s[%d] = len %d\n", name, i, len(outer[i]))
-			}
-		}
-	}
-	printNested("Hands", g.Hands)
-	printNested("Openeds", g.Openeds)
-	printNested("Closeds", g.Closeds)
-	fmt.Println("-------------------------")
-}
-
 func (gs *gameServer) leaveRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -152,7 +131,7 @@ func (gs *gameServer) move(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	var currentPlayer player.PlayerMove
+	var currentPlayer player.Player
 	if err := c.ShouldBindJSON(&currentPlayer); err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return

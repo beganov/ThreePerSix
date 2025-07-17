@@ -5,20 +5,19 @@ import (
 
 	gameerror "github.com/beganov/gingonicserver/internal/errors"
 	"github.com/beganov/gingonicserver/internal/game"
-	"github.com/beganov/gingonicserver/internal/player"
 )
 
 const maxPlayer = 6
 
 type Room struct {
 	sync.RWMutex
-	Id             int                    `json:"id"`
-	MaxPlayerCount int                    `json:"maxPlayerCount"`
-	HostId         int                    `json:"hostId"`
-	NextPlayerId   int                    `json:"nextPlayerId"`
-	IsStart        bool                   `json:"isStart"`
-	Players        map[int]*player.Player `json:"players"`
-	GameStates     game.GameState         `json:"gamestates"`
+	Id             int            `json:"id"`
+	MaxPlayerCount int            `json:"maxPlayerCount"`
+	HostId         int            `json:"hostId"`
+	NextPlayerId   int            `json:"nextPlayerId"`
+	IsStart        bool           `json:"isStart"`
+	Players        map[int]int    `json:"players"`
+	GameStates     game.GameState `json:"gamestates"`
 }
 
 type RoomUpdate struct {
@@ -29,11 +28,10 @@ func NewRoom(id int) *Room {
 	r := &Room{}
 	r.Id = id
 	r.MaxPlayerCount = maxPlayer
-	r.Players = make(map[int]*player.Player)
+	r.Players = make(map[int]int)
 	r.NextPlayerId = 1
 	r.HostId = r.NextPlayerId
-	currentPlayer := player.NewPlayer(r.NextPlayerId)
-	r.Players[r.NextPlayerId] = currentPlayer
+	r.Players[r.NextPlayerId] = r.NextPlayerId
 	r.IsStart = false
 	return r
 }
@@ -63,8 +61,7 @@ func (r *Room) JoinRoom() (int, error) {
 	}
 	if r.MaxPlayerCount > len(r.Players) {
 		r.NextPlayerId++
-		currentPlayer := player.NewPlayer(r.NextPlayerId)
-		r.Players[r.NextPlayerId] = currentPlayer
+		r.Players[r.NextPlayerId] = r.NextPlayerId
 		return r.NextPlayerId, nil
 	}
 	return 0, gameerror.ErrFullRoom
@@ -107,7 +104,7 @@ func (r *Room) Start() (*game.GameState, error) {
 		return nil, gameerror.ErrStart
 	}
 	r.IsStart = true
-	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount)
+	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players)
 	return &r.GameStates, nil
 }
 
@@ -119,7 +116,7 @@ func (r *Room) Move(playerId int, playerMove int) (*game.GameState, error) { //Ð
 	}
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return nil, gameerror.ErrIncorrectRoomId
+		return nil, gameerror.ErrIncorrectPlayerId
 	}
 	game := r.GameStates.Move(playerId, playerMove)
 	return game, nil
