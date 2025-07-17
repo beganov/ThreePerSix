@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/beganov/gingonicserver/internal/card"
 	"github.com/beganov/gingonicserver/internal/game"
 	"github.com/beganov/gingonicserver/internal/player"
 	"github.com/beganov/gingonicserver/internal/room"
@@ -98,7 +99,7 @@ func debugPrintGameState(g *game.GameState) {
 	fmt.Println("---- DEBUG GameState ----")
 	fmt.Printf("MaxPlayerCount = %d\n", g.MaxPlayerCount)
 	fmt.Printf("Iamind = %d\n", g.Iamind)
-	printNested := func(name string, outer [][]game.Card) {
+	printNested := func(name string, outer [][]card.Card) {
 		for i := range outer {
 			if outer[i] == nil {
 				fmt.Printf("%s[%d] = nil\n", name, i)
@@ -152,7 +153,7 @@ func (gs *gameServer) move(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	var currentPlayer player.PlayerMove
+	var currentPlayer player.Player
 	if err := c.ShouldBindJSON(&currentPlayer); err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
