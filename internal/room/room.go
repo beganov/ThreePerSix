@@ -80,8 +80,8 @@ func (r *Room) LeaveRoom(playerId int) error {
 	if !isExist {
 		return gameerror.ErrIncorrectRoomId
 	}
-	if r.IsStart { //думай че тут при удалении во время игры делать (явно автолуз)
-		r.GameStates.LeaveGame(playerId) // пустышка
+	if r.IsStart {
+		r.GameStates.LeaveGame(playerId)
 	} else {
 		if playerId == r.HostId {
 			for i := range r.Players {
@@ -93,7 +93,7 @@ func (r *Room) LeaveRoom(playerId int) error {
 		}
 
 	}
-	delete(r.Players, playerId)
+	//delete(r.Players, playerId)
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (r *Room) Start() (*game.GameState, error) {
 		return nil, gameerror.ErrStart
 	}
 	r.IsStart = true
-	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players)
+	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r)
 	return &r.GameStates, nil
 }
 
@@ -120,4 +120,9 @@ func (r *Room) Move(playerId int, playerMove int) (*game.GameState, error) { //�
 	}
 	game := r.GameStates.Move(playerId, playerMove)
 	return game, nil
+}
+
+func (r *Room) OnGameEnd() {
+	r.IsStart = false
+	r.GameStates = game.GameState{}
 }

@@ -9,7 +9,8 @@ import (
 	"github.com/beganov/gingonicserver/internal/placement"
 )
 
-func (g *GameState) PreInitialization(MaxPlayerCount int, Players map[int]int) {
+func (g *GameState) PreInitialization(MaxPlayerCount int, Players map[int]int, end GameEndHandler) {
+	g.handler = end
 	g.IdMap, g.ch = ChannelsInit(Players)
 	g.MaxPlayerCount = MaxPlayerCount
 	g.Deck = card.NewDeck()
@@ -106,4 +107,5 @@ func (g *GameState) Game() {
 
 	}
 	fmt.Println("GameEnd")
+	g.handler.OnGameEnd()
 }

@@ -7,8 +7,8 @@ import (
 	"github.com/beganov/gingonicserver/internal/gameConst"
 )
 
-func (g *GameState) StartGame(MaxPlayerCount int, Players map[int]int) *GameState {
-	g.PreInitialization(MaxPlayerCount, Players)
+func (g *GameState) StartGame(MaxPlayerCount int, Players map[int]int, end GameEndHandler) *GameState {
+	g.PreInitialization(MaxPlayerCount, Players, end)
 	go func() {
 		g.Initialization()
 		g.Game()

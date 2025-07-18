@@ -8,13 +8,13 @@ import (
 
 func ChannelsInit(Players map[int]int) (map[int]int, map[int]chan int) {
 	lenPlayers := len(Players)
-	iamind := make(map[int]int, lenPlayers)
+	idMap := make(map[int]int, lenPlayers)
 	ch := make(map[int]chan int, lenPlayers)
 	for i := range Players {
 		ch[i] = make(chan int, 1)
-		iamind[i]++
+		idMap[i]++
 	}
-	return iamind, ch
+	return idMap, ch
 }
 
 func keyValueReverse(idMap map[int]int) map[int]int {

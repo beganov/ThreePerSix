@@ -17,4 +17,9 @@ type GameState struct {
 	IdMap          map[int]int   `json:"idMap,omitempty"`        //key = playerId, value = placement
 	ReverceIdMap   map[int]int   `json:"reverceIdMap,omitempty"` //key = placement, value = playerId
 	ch             map[int]chan int
+	handler        GameEndHandler
+}
+
+type GameEndHandler interface {
+	OnGameEnd()
 }
