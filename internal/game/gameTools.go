@@ -25,7 +25,7 @@ func keyValueReverse(idMap map[int]int) map[int]int {
 	return reverseIdMap
 }
 
-func ArraytoMap(array []int, resMap map[int]int) map[int]int { //rename
+func ArraytoMap(array []int, resMap map[int]int) map[int]int {
 	j := 0
 	for i := range resMap {
 		resMap[i] = array[j]

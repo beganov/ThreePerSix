@@ -21,6 +21,7 @@ func (g *GameState) Initialization() {
 	orderMap := g.PlayerInitialization()
 	g.Hands, g.Openeds = placement.ShufflePlayer(g.Hands, g.Openeds, orderMap)   //Расставляет игроков по случайным позициям
 	g.Hands, g.Openeds, g.IdMap = placement.Orderer(g.Hands, g.Openeds, g.IdMap) //Передает первый ход игроку с тройкой
+	g.Closeds = placement.LeaveCheck(g.Hands, g.Closeds)
 	g.ReverceIdMap = keyValueReverse(g.IdMap)
 }
 
@@ -55,6 +56,11 @@ func (g *GameState) OpenedsPlayerInitialization(playerId, k int) {
 	for z != gameConst.PackSize {
 		fmt.Println(g.Hands[k])
 		Openedshoosen = <-g.ch[playerId]
+		if Openedshoosen == gameConst.LeaveGameCode {
+			fmt.Println("break")
+			z = gameConst.PackSize
+			break
+		}
 		//fmt.Scan(&Openedshoosen) //
 		//Openedshoosen = g.Hands[len(g.Hands)-1][0].Val //\
 		for i := range g.Hands[k] {
@@ -80,10 +86,13 @@ func (g *GameState) Game() {
 		counter = 1
 		for i := 0; i < g.MaxPlayerCount; i++ {
 			flag = false
-			cardState = -2
+			cardState = gameConst.StartCardState
 			for !flag {
 				if len(g.Hands[i]) == 0 && len(g.Closeds[i]) == 0 {
 					counter++
+					delete(g.IdMap, g.ReverceIdMap[i])
+					delete(g.ch, g.ReverceIdMap[i])
+					delete(g.ReverceIdMap, i)
 					break
 				}
 				card.SortCard(g.Hands[i])

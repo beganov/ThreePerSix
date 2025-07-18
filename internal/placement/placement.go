@@ -12,13 +12,16 @@ func Orderer(hands, openeds [][]card.Card, idMap map[int]int) ([][]card.Card, []
 	mini := 0
 	for i := range hands {
 		card.SortCard(hands[i])
+		if len(hands[i]) == 0 { //на случай leave
+			continue
+		}
 		if min > hands[i][0].Val {
 			min = hands[i][0].Val
 			mini = i
 		}
 	}
 
-	if mini != 0 {
+	if mini != 0 && len(hands) != 0 { //на случай leave
 		hands[0], hands[mini] = hands[mini], hands[0]
 		openeds[0], openeds[mini] = openeds[mini], openeds[0]
 	}
@@ -90,4 +93,13 @@ func NewPlacementArray(maxPlayerCount, realPlayerCount int) []int {
 		}
 	}
 	return shuffleArr
+}
+
+func LeaveCheck(hands, closeds [][]card.Card) [][]card.Card {
+	for i := range hands {
+		if len(hands[i]) == 0 {
+			closeds[i] = []card.Card{}
+		}
+	}
+	return closeds
 }
