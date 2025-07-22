@@ -2,30 +2,35 @@ package card
 
 import "github.com/beganov/gingonicserver/internal/gameConst"
 
-func GiveCardLogic(Hands, Out []Card, cardState, i int, iamindFlag, flag, istake bool, ch <-chan int) ([]Card, []Card, int, bool, bool) {
+func GiveCardLogic(Hands, Out []Card, cardState, i int, iamindFlag, flag, istake bool, ch <-chan int) ([]Card, []Card, int, bool, bool, bool) {
+	isMoved := false
 	if len(Hands) != 0 {
 		if cardState > gameConst.TakedCardState {
 			Out, Hands, flag = ReGiveCard(Out, Hands, cardState, iamindFlag, ch)
 			istake = !flag
+			isMoved = true
 		}
 		if cardState == gameConst.StartCardState {
 			Out, Hands, istake, cardState = GiveCard(Out, Hands, iamindFlag, ch)
 			flag = !istake
+			isMoved = true
 		}
 		if len(Out) > 0 {
 			if Out[len(Out)-1].Val == 0 || Out[len(Out)-1].Val == 10 {
 				Out = Out[:0]
 				flag = false
 				cardState = gameConst.StartCardState
+				isMoved = false
 			}
 		}
 		if len(Out) >= 4 && Out[len(Out)-1].Val == Out[len(Out)-2].Val && Out[len(Out)-2].Val == Out[len(Out)-3].Val && Out[len(Out)-3].Val == Out[len(Out)-4].Val {
 			Out = Out[:0]
 			flag = false
 			cardState = gameConst.StartCardState
+			isMoved = false
 		}
 	}
-	return Hands, Out, cardState, flag, istake
+	return Hands, Out, cardState, flag, istake, isMoved
 }
 
 func TakeCard(Deck, Hands, Openeds, Closeds []Card, istake bool) ([]Card, []Card, []Card, []Card) {

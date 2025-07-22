@@ -11,10 +11,10 @@ const maxPlayer = 6
 
 type Room struct {
 	sync.RWMutex
-	Id             int            `json:"id"`
-	MaxPlayerCount int            `json:"maxPlayerCount"`
-	HostId         int            `json:"hostId"`
-	NextPlayerId   int            `json:"nextPlayerId"`
+	Id             int `json:"id"`
+	MaxPlayerCount int `json:"maxPlayerCount"`
+	HostId         int `json:"hostId"`
+	NextPlayerId   int
 	IsStart        bool           `json:"isStart"`
 	Players        map[int]int    `json:"players"`
 	GameStates     game.GameState `json:"gamestates"`
@@ -93,11 +93,11 @@ func (r *Room) LeaveRoom(playerId int) error {
 		}
 
 	}
-	//delete(r.Players, playerId)
+	delete(r.Players, playerId)
 	return nil
 }
 
-func (r *Room) Start() (*game.GameState, error) {
+func (r *Room) Start() (*Room, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
@@ -105,10 +105,10 @@ func (r *Room) Start() (*game.GameState, error) {
 	}
 	r.IsStart = true
 	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r)
-	return &r.GameStates, nil
+	return r, nil
 }
 
-func (r *Room) Move(playerId int, playerMove int) (*game.GameState, error) { //надо вернуть GameState
+func (r *Room) Move(playerId int, playerMove int) (*Room, error) { //надо вернуть GameState
 	r.Lock()
 	defer r.Unlock()
 	if !r.IsStart {
@@ -118,11 +118,12 @@ func (r *Room) Move(playerId int, playerMove int) (*game.GameState, error) { //�
 	if !isExist {
 		return nil, gameerror.ErrIncorrectPlayerId
 	}
-	game := r.GameStates.Move(playerId, playerMove)
-	return game, nil
+	r.GameStates = *r.GameStates.Move(playerId, playerMove)
+	return r, nil
 }
 
 func (r *Room) OnGameEnd() {
 	r.IsStart = false
-	r.GameStates = game.GameState{}
+
+	//r.GameStates = game.GameState{}
 }

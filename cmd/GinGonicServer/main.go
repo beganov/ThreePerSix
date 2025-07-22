@@ -8,6 +8,7 @@ import (
 	"github.com/beganov/gingonicserver/internal/player"
 	"github.com/beganov/gingonicserver/internal/room"
 	"github.com/beganov/gingonicserver/internal/storage"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,13 +33,13 @@ func (gs *gameServer) getRoom(c *gin.Context) {
 		return
 	}
 
-	game, err := gs.store.GetRoom(roomId)
+	room, err := gs.store.GetRoom(roomId)
 	if err != nil {
 		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, game)
+	c.JSON(http.StatusOK, room)
 }
 
 func (gs *gameServer) deleteRoom(c *gin.Context) {
@@ -117,12 +118,12 @@ func (gs *gameServer) start(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	game, err := gs.store.Start(roomId)
+	room, err := gs.store.Start(roomId)
 	if err != nil {
 		c.String(http.StatusConflict, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"game": game})
+	c.JSON(http.StatusOK, gin.H{"room": room})
 }
 
 func (gs *gameServer) move(c *gin.Context) {
@@ -136,18 +137,27 @@ func (gs *gameServer) move(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	game, err := gs.store.Move(roomId, currentPlayer.Id, currentPlayer.Move)
+	room, err := gs.store.Move(roomId, currentPlayer.Id, currentPlayer.Move)
 	if err != nil {
 		c.String(http.StatusConflict, err.Error())
 		return
 	}
 	//debugPrintGameState(game)
 	time.Sleep(100)
-	c.JSON(http.StatusOK, gin.H{"game": game})
+	c.JSON(http.StatusOK, gin.H{"room": room})
 }
 
 func main() {
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	server := NewServer()
 
 	router.POST("/rooms/", server.createRoom)

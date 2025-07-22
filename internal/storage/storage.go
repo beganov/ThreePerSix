@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	gameerror "github.com/beganov/gingonicserver/internal/errors"
-	"github.com/beganov/gingonicserver/internal/game"
 	"github.com/beganov/gingonicserver/internal/room"
 )
 
@@ -34,14 +33,14 @@ func (s *Storage) CreateRoom() (int, int) {
 	return room.Id, room.HostId
 }
 
-func (s *Storage) GetRoom(roomId int) (*game.GameState, error) {
+func (s *Storage) GetRoom(roomId int) (*room.Room, error) {
 	s.RLock() //Чет с локами надо разобраться будет
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
 		return nil, gameerror.ErrIncorrectRoomId
 	}
-	return &room.GameStates, nil
+	return room, nil
 }
 
 func (s *Storage) DeleteRoom(roomId int) error {
@@ -90,7 +89,7 @@ func (s *Storage) LeaveRoom(roomId int, playerId int) error {
 	return err
 }
 
-func (s *Storage) Start(roomId int) (*game.GameState, error) {
+func (s *Storage) Start(roomId int) (*room.Room, error) {
 	s.RLock()
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
@@ -100,7 +99,7 @@ func (s *Storage) Start(roomId int) (*game.GameState, error) {
 	return room.Start()
 }
 
-func (s *Storage) Move(roomId int, playerId int, playerMove int) (*game.GameState, error) { //надо вернуть GameState
+func (s *Storage) Move(roomId int, playerId int, playerMove int) (*room.Room, error) { //надо вернуть GameState
 	s.RLock()
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
