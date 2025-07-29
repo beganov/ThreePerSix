@@ -3,7 +3,7 @@ package game
 import (
 	"fmt"
 
-	"github.com/beganov/gingonicserver/internal/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
 )
 
 func ChannelsInit(Players map[int]int) (map[int]int, map[int]chan int) {

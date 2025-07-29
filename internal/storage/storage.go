@@ -3,8 +3,8 @@ package storage
 import (
 	"sync"
 
-	gameerror "github.com/beganov/gingonicserver/internal/errors"
-	"github.com/beganov/gingonicserver/internal/room"
+	"github.com/beganov/gingonicserver/internal/domain/room"
+	lobbyerror "github.com/beganov/gingonicserver/internal/errors"
 )
 
 type Storage struct {
@@ -38,7 +38,7 @@ func (s *Storage) GetRoom(roomId int) (*room.Room, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, gameerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrIncorrectRoomId
 	}
 	return room, nil
 }
@@ -49,7 +49,7 @@ func (s *Storage) DeleteRoom(roomId int) error {
 
 	_, isExist := s.rooms[roomId]
 	if !isExist {
-		return gameerror.ErrIncorrectRoomId
+		return lobbyerror.ErrIncorrectRoomId
 	}
 	delete(s.rooms, roomId)
 	return nil
@@ -60,7 +60,7 @@ func (s *Storage) PatchRoom(roomId int, update room.RoomUpdate) error {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return gameerror.ErrIncorrectRoomId
+		return lobbyerror.ErrIncorrectRoomId
 	}
 	return room.PatchRoom(update)
 }
@@ -70,7 +70,7 @@ func (s *Storage) JoinRoom(roomId int) (int, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return 0, gameerror.ErrIncorrectRoomId
+		return 0, lobbyerror.ErrIncorrectRoomId
 	}
 	return room.JoinRoom()
 }
@@ -80,7 +80,7 @@ func (s *Storage) LeaveRoom(roomId int, playerId int) error {
 	defer s.Unlock()
 	room, isExist := s.rooms[roomId]
 	if !isExist {
-		return gameerror.ErrIncorrectRoomId
+		return lobbyerror.ErrIncorrectRoomId
 	}
 	err := room.LeaveRoom(playerId)
 	if room.LenRoom() == 0 {
@@ -94,17 +94,17 @@ func (s *Storage) Start(roomId int) (*room.Room, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, gameerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrIncorrectRoomId
 	}
 	return room.Start()
 }
 
-func (s *Storage) Move(roomId int, playerId int, playerMove int) (*room.Room, error) { //надо вернуть GameState
+func (s *Storage) Move(roomId int, playerId int, playerMove int) (*room.Room, error) {
 	s.RLock()
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, gameerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrIncorrectRoomId
 	}
 	return room.Move(playerId, playerMove)
 }

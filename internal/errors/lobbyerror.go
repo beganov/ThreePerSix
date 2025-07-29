@@ -1,4 +1,4 @@
-package gameerror
+package lobbyerror
 
 import "errors"
 

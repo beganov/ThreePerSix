@@ -3,7 +3,7 @@ package game
 import (
 	"sync"
 
-	"github.com/beganov/gingonicserver/internal/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
 )
 
 type GameState struct {

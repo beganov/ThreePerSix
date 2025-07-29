@@ -3,7 +3,7 @@ package card
 import (
 	"math/rand/v2"
 
-	"github.com/beganov/gingonicserver/internal/gameConst"
+	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 )
 
 func NewDeck() []Card {

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/beganov/gingonicserver/internal/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
 )
 
 func TestOrderer(t *testing.T) {

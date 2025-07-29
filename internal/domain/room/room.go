@@ -3,18 +3,18 @@ package room
 import (
 	"sync"
 
-	gameerror "github.com/beganov/gingonicserver/internal/errors"
-	"github.com/beganov/gingonicserver/internal/game"
+	"github.com/beganov/gingonicserver/internal/domain/core/game"
+	lobbyerror "github.com/beganov/gingonicserver/internal/errors"
 )
 
 const maxPlayer = 6
 
 type Room struct {
 	sync.RWMutex
-	Id             int `json:"id"`
-	MaxPlayerCount int `json:"maxPlayerCount"`
-	HostId         int `json:"hostId"`
-	NextPlayerId   int
+	Id             int            `json:"id"`
+	MaxPlayerCount int            `json:"maxPlayerCount"`
+	HostId         int            `json:"hostId"`
+	NextPlayerId   int            `json:"nextPlayerId"`
 	IsStart        bool           `json:"isStart"`
 	Players        map[int]int    `json:"players"`
 	GameStates     game.GameState `json:"gamestates"`
@@ -40,14 +40,14 @@ func (r *Room) PatchRoom(update RoomUpdate) error {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return gameerror.ErrStart
+		return lobbyerror.ErrStart
 	}
 	if update.MaxPlayerCount != nil {
 		MaxPlayerCount := *update.MaxPlayerCount
 		if MaxPlayerCount > 1 && MaxPlayerCount <= 6 && MaxPlayerCount >= len(r.Players) {
 			r.MaxPlayerCount = MaxPlayerCount
 		} else {
-			return gameerror.ErrMaxPlayerCount
+			return lobbyerror.ErrMaxPlayerCount
 		}
 	}
 	return nil
@@ -57,14 +57,14 @@ func (r *Room) JoinRoom() (int, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return 0, gameerror.ErrStart
+		return 0, lobbyerror.ErrStart
 	}
 	if r.MaxPlayerCount > len(r.Players) {
 		r.NextPlayerId++
 		r.Players[r.NextPlayerId] = r.NextPlayerId
 		return r.NextPlayerId, nil
 	}
-	return 0, gameerror.ErrFullRoom
+	return 0, lobbyerror.ErrFullRoom
 }
 
 func (r *Room) LenRoom() int {
@@ -78,7 +78,7 @@ func (r *Room) LeaveRoom(playerId int) error {
 	defer r.Unlock()
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return gameerror.ErrIncorrectRoomId
+		return lobbyerror.ErrIncorrectRoomId
 	}
 	if r.IsStart {
 		r.GameStates.LeaveGame(playerId)
@@ -101,7 +101,7 @@ func (r *Room) Start() (*Room, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return nil, gameerror.ErrStart
+		return nil, lobbyerror.ErrStart
 	}
 	r.IsStart = true
 	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r)
@@ -112,11 +112,11 @@ func (r *Room) Move(playerId int, playerMove int) (*Room, error) { //надо в
 	r.Lock()
 	defer r.Unlock()
 	if !r.IsStart {
-		return nil, gameerror.ErrNotStart
+		return nil, lobbyerror.ErrNotStart
 	}
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return nil, gameerror.ErrIncorrectPlayerId
+		return nil, lobbyerror.ErrIncorrectPlayerId
 	}
 	r.GameStates = *r.GameStates.Move(playerId, playerMove)
 	return r, nil

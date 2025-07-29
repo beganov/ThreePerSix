@@ -1,8 +1,8 @@
 package game
 
 import (
-	"github.com/beganov/gingonicserver/internal/card"
-	"github.com/beganov/gingonicserver/internal/gameConst"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 )
 
 func (g *GameState) StartGame(maxPlayerCount int, Players map[int]int, end GameEndHandler) *GameState {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/beganov/gingonicserver/internal/card"
-	"github.com/beganov/gingonicserver/internal/gameConst"
-	"github.com/beganov/gingonicserver/internal/placement"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
+	"github.com/beganov/gingonicserver/internal/domain/core/placement"
 )
 
 func (g *GameState) PreInitialization(maxPlayerCount int, Players map[int]int, end GameEndHandler) {

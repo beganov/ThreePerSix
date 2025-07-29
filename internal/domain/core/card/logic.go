@@ -1,6 +1,6 @@
 package card
 
-import "github.com/beganov/gingonicserver/internal/gameConst"
+import "github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 
 func GiveCardLogic(Hands, Out []Card, cardState, i int, iamindFlag, flag, istake bool, ch <-chan int) ([]Card, []Card, int, bool, bool, bool) {
 	isMoved := false

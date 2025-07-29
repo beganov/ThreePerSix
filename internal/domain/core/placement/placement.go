@@ -3,8 +3,8 @@ package placement
 import (
 	"math/rand/v2"
 
-	"github.com/beganov/gingonicserver/internal/card"
-	"github.com/beganov/gingonicserver/internal/gameConst"
+	"github.com/beganov/gingonicserver/internal/domain/core/card"
+	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 )
 
 func Orderer(hands, openeds [][]card.Card, idMap map[int]int) ([][]card.Card, [][]card.Card, map[int]int) {
