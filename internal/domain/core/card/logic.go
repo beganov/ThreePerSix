@@ -91,8 +91,7 @@ func GiveCard(Out, Hands []Card, isAm bool, ch <-chan int) ([]Card, []Card, bool
 
 func ReGiveCard(Out, Hands []Card, Value int, isIam bool, ch <-chan int) ([]Card, []Card, bool) {
 	if isIam {
-		var input int
-		input = <-ch
+		input := <-ch
 		if input == gameConst.LeaveGameCode {
 			return Out, []Card{}, true //
 		}

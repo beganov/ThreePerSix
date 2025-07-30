@@ -99,12 +99,12 @@ func (s *Storage) Start(roomId int) (*room.Room, error) {
 	return room.Start()
 }
 
-func (s *Storage) Move(roomId int, playerId int, playerMove int) (*room.Room, error) {
+func (s *Storage) Move(roomId int, playerId int, playerMove int) error {
 	s.RLock()
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, lobbyerror.ErrInvalidRoomID
+		return lobbyerror.ErrInvalidRoomID
 	}
 	return room.Move(playerId, playerMove)
 }

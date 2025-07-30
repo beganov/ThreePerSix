@@ -1,9 +1,16 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	_ "github.com/beganov/gingonicserver/internal/api/docs"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+)
 
 func RouteRegister(router *gin.Engine) {
 	server := NewServer()
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.POST("/rooms/", server.createRoom)
 	router.GET("/rooms/:id/", server.getRoom)

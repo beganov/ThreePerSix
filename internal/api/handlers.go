@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/beganov/gingonicserver/internal/domain/player"
 	"github.com/beganov/gingonicserver/internal/domain/room"
@@ -22,11 +21,28 @@ func NewServer() *gameServer {
 	return &gameServer{store: store}
 }
 
+// createRoom создает новую комнату и возвращает её ID и ID создателя
+// @Summary      Создать комнату
+// @Description  Создает новую игровую комнату и возвращает ID комнаты и ID игрока-организатора
+// @Tags         rooms
+// @Produce      json
+// @Success      201  {object}  map[string]string  "roomId и playerId"
+// @Router       /rooms/ [post]
 func (gs *gameServer) createRoom(c *gin.Context) {
 	roomId, playerID := gs.store.CreateRoom()
 	c.JSON(http.StatusCreated, gin.H{"roomId": roomId, "playerId": playerID})
 }
 
+// getRoom возвращает данные комнаты по ID
+// @Summary      Получить информацию о комнате
+// @Description  Возвращает информацию о комнате по её ID
+// @Tags         rooms
+// @Produce      json
+// @Param        id   path      int  true  "ID комнаты"
+// @Success      200  {object}  room.Room  "Данные комнаты"
+// @Failure      400  {string}  string     "Некорректный ID"
+// @Failure      404  {string}  string     "Комната не найдена"
+// @Router       /rooms/{id}/ [get]
 func (gs *gameServer) getRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -80,6 +96,16 @@ func (gs *gameServer) patchRoom(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// joinRoom добавляет игрока в комнату и возвращает его ID
+// @Summary      Присоединиться к комнате
+// @Description  Позволяет игроку присоединиться к комнате по ID и возвращает его playerId
+// @Tags         rooms
+// @Produce      json
+// @Param        id   path      int  true  "ID комнаты"
+// @Success      200  {object}  map[string]string  "playerId"
+// @Failure      400  {string}  string             "Некорректный ID комнаты"
+// @Failure      409  {string}  string             "Ошибка присоединения (например, комната полна)"
+// @Router       /rooms/{id}/join [post]swag init
 func (gs *gameServer) joinRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -138,14 +164,14 @@ func (gs *gameServer) move(c *gin.Context) {
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidPlayerID))
 		return
 	}
-	room, err := gs.store.Move(roomId, currentPlayer.Id, currentPlayer.Move)
+	err = gs.store.Move(roomId, currentPlayer.Id, currentPlayer.Move)
 	if err != nil {
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
 	//debugPrintGameState(game)
-	time.Sleep(100)
-	c.JSON(http.StatusOK, gin.H{"room": room})
+	//time.Sleep(100) // эта вещь точно работала, строчку ниже не тестил, но по логике должна
+	c.JSON(http.StatusOK, gin.H{"message": "move accepted"})
 }
 
 func formatError(err error) string {

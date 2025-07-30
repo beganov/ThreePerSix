@@ -1,0 +1,148 @@
+definitions:
+  card.Card:
+    properties:
+      id:
+        type: integer
+      val:
+        type: integer
+    type: object
+  game.GameState:
+    properties:
+      closeds:
+        items:
+          items:
+            $ref: '#/definitions/card.Card'
+          type: array
+        type: array
+      deck:
+        items:
+          $ref: '#/definitions/card.Card'
+        type: array
+      hands:
+        items:
+          items:
+            $ref: '#/definitions/card.Card'
+          type: array
+        type: array
+      idMap:
+        additionalProperties:
+          type: integer
+        description: key = playerId, value = placement
+        type: object
+      isMoved:
+        type: boolean
+      openeds:
+        items:
+          items:
+            $ref: '#/definitions/card.Card'
+          type: array
+        type: array
+      out:
+        items:
+          $ref: '#/definitions/card.Card'
+        type: array
+      playerNow:
+        type: integer
+      reverceIdMap:
+        additionalProperties:
+          type: integer
+        description: key = placement, value = playerId
+        type: object
+      turn:
+        type: integer
+    type: object
+  room.Room:
+    properties:
+      gamestates:
+        $ref: '#/definitions/game.GameState'
+      hostId:
+        type: integer
+      id:
+        type: integer
+      isStart:
+        type: boolean
+      maxPlayerCount:
+        type: integer
+      nextPlayerId:
+        type: integer
+      players:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+info:
+  contact: {}
+paths:
+  /rooms/:
+    post:
+      description: Создает новую игровую комнату и возвращает ID комнаты и ID игрока-организатора
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: roomId и playerId
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создать комнату
+      tags:
+      - rooms
+  /rooms/{id}/:
+    get:
+      description: Возвращает информацию о комнате по её ID
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные комнаты
+          schema:
+            $ref: '#/definitions/room.Room'
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "404":
+          description: Комната не найдена
+          schema:
+            type: string
+      summary: Получить информацию о комнате
+      tags:
+      - rooms
+  /rooms/{id}/join:
+    post:
+      description: Позволяет игроку присоединиться к комнате по ID и возвращает его
+        playerId
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: playerId
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный ID комнаты
+          schema:
+            type: string
+        "409":
+          description: Ошибка присоединения (например, комната полна)
+          schema:
+            type: string
+      summary: Присоединиться к комнате
+      tags:
+      - rooms
+swagger: "2.0"

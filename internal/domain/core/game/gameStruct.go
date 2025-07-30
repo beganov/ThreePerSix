@@ -7,7 +7,7 @@ import (
 )
 
 type GameState struct {
-	sync.Mutex
+	sync.Mutex   `json:"-" swaggerignore:"true"`
 	Deck         []card.Card   `json:"deck,omitempty"`
 	Out          []card.Card   `json:"out,omitempty"`
 	Hands        [][]card.Card `json:"hands,omitempty"`

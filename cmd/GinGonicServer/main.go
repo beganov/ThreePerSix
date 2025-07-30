@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/beganov/gingonicserver/internal/api"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -17,5 +19,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 	api.RouteRegister(router)
-	router.Run("localhost:8080")
+	if err := router.Run("localhost:8080"); err != nil {
+		fmt.Println("Failed to run server:", err)
+	}
 }

@@ -10,7 +10,7 @@ import (
 const maxPlayer = 6
 
 type Room struct {
-	sync.RWMutex
+	sync.RWMutex   `json:"-" swaggerignore:"true"`
 	Id             int            `json:"id"`
 	MaxPlayerCount int            `json:"maxPlayerCount"`
 	HostId         int            `json:"hostId"`
@@ -108,18 +108,18 @@ func (r *Room) Start() (*Room, error) {
 	return r, nil
 }
 
-func (r *Room) Move(playerId int, playerMove int) (*Room, error) { //надо вернуть GameState
+func (r *Room) Move(playerId int, playerMove int) error { //надо вернуть GameState
 	r.Lock()
 	defer r.Unlock()
 	if !r.IsStart {
-		return nil, lobbyerror.ErrGameNotStarted
+		return lobbyerror.ErrGameNotStarted
 	}
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return nil, lobbyerror.ErrInvalidPlayerID
+		return lobbyerror.ErrInvalidPlayerID
 	}
 	r.GameStates = *r.GameStates.Move(playerId, playerMove)
-	return r, nil
+	return nil
 }
 
 func (r *Room) OnGameEnd() {

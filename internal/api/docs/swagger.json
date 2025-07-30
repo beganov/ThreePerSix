@@ -1,0 +1,225 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/rooms/": {
+            "post": {
+                "description": "Создает новую игровую комнату и возвращает ID комнаты и ID игрока-организатора",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Создать комнату",
+                "responses": {
+                    "201": {
+                        "description": "roomId и playerId",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/": {
+            "get": {
+                "description": "Возвращает информацию о комнате по её ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Получить информацию о комнате",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Данные комнаты",
+                        "schema": {
+                            "$ref": "#/definitions/room.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Комната не найдена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/join": {
+            "post": {
+                "description": "Позволяет игроку присоединиться к комнате по ID и возвращает его playerId",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Присоединиться к комнате",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "playerId",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID комнаты",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Ошибка присоединения (например, комната полна)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "card.Card": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "val": {
+                    "type": "integer"
+                }
+            }
+        },
+        "game.GameState": {
+            "type": "object",
+            "properties": {
+                "closeds": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/card.Card"
+                        }
+                    }
+                },
+                "deck": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/card.Card"
+                    }
+                },
+                "hands": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/card.Card"
+                        }
+                    }
+                },
+                "idMap": {
+                    "description": "key = playerId, value = placement",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "isMoved": {
+                    "type": "boolean"
+                },
+                "openeds": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/card.Card"
+                        }
+                    }
+                },
+                "out": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/card.Card"
+                    }
+                },
+                "playerNow": {
+                    "type": "integer"
+                },
+                "reverceIdMap": {
+                    "description": "key = placement, value = playerId",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "turn": {
+                    "type": "integer"
+                }
+            }
+        },
+        "room.Room": {
+            "type": "object",
+            "properties": {
+                "gamestates": {
+                    "$ref": "#/definitions/game.GameState"
+                },
+                "hostId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isStart": {
+                    "type": "boolean"
+                },
+                "maxPlayerCount": {
+                    "type": "integer"
+                },
+                "nextPlayerId": {
+                    "type": "integer"
+                },
+                "players": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+    }
+}
