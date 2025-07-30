@@ -40,14 +40,14 @@ func (r *Room) PatchRoom(update RoomUpdate) error {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return lobbyerror.ErrStart
+		return lobbyerror.ErrGameAlreadyStarted
 	}
 	if update.MaxPlayerCount != nil {
 		MaxPlayerCount := *update.MaxPlayerCount
 		if MaxPlayerCount > 1 && MaxPlayerCount <= 6 && MaxPlayerCount >= len(r.Players) {
 			r.MaxPlayerCount = MaxPlayerCount
 		} else {
-			return lobbyerror.ErrMaxPlayerCount
+			return lobbyerror.ErrInvalidMaxPlayersCount
 		}
 	}
 	return nil
@@ -57,14 +57,14 @@ func (r *Room) JoinRoom() (int, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return 0, lobbyerror.ErrStart
+		return 0, lobbyerror.ErrGameAlreadyStarted
 	}
 	if r.MaxPlayerCount > len(r.Players) {
 		r.NextPlayerId++
 		r.Players[r.NextPlayerId] = r.NextPlayerId
 		return r.NextPlayerId, nil
 	}
-	return 0, lobbyerror.ErrFullRoom
+	return 0, lobbyerror.ErrRoomIsFull
 }
 
 func (r *Room) LenRoom() int {
@@ -78,7 +78,7 @@ func (r *Room) LeaveRoom(playerId int) error {
 	defer r.Unlock()
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return lobbyerror.ErrIncorrectRoomId
+		return lobbyerror.ErrInvalidPlayerID
 	}
 	if r.IsStart {
 		r.GameStates.LeaveGame(playerId)
@@ -101,7 +101,7 @@ func (r *Room) Start() (*Room, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
-		return nil, lobbyerror.ErrStart
+		return nil, lobbyerror.ErrGameAlreadyStarted
 	}
 	r.IsStart = true
 	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r)
@@ -112,11 +112,11 @@ func (r *Room) Move(playerId int, playerMove int) (*Room, error) { //надо в
 	r.Lock()
 	defer r.Unlock()
 	if !r.IsStart {
-		return nil, lobbyerror.ErrNotStart
+		return nil, lobbyerror.ErrGameNotStarted
 	}
 	_, isExist := r.Players[playerId]
 	if !isExist {
-		return nil, lobbyerror.ErrIncorrectPlayerId
+		return nil, lobbyerror.ErrInvalidPlayerID
 	}
 	r.GameStates = *r.GameStates.Move(playerId, playerMove)
 	return r, nil

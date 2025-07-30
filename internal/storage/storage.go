@@ -38,7 +38,7 @@ func (s *Storage) GetRoom(roomId int) (*room.Room, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, lobbyerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrInvalidRoomID
 	}
 	return room, nil
 }
@@ -49,7 +49,7 @@ func (s *Storage) DeleteRoom(roomId int) error {
 
 	_, isExist := s.rooms[roomId]
 	if !isExist {
-		return lobbyerror.ErrIncorrectRoomId
+		return lobbyerror.ErrInvalidRoomID
 	}
 	delete(s.rooms, roomId)
 	return nil
@@ -60,7 +60,7 @@ func (s *Storage) PatchRoom(roomId int, update room.RoomUpdate) error {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return lobbyerror.ErrIncorrectRoomId
+		return lobbyerror.ErrInvalidRoomID
 	}
 	return room.PatchRoom(update)
 }
@@ -70,7 +70,7 @@ func (s *Storage) JoinRoom(roomId int) (int, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return 0, lobbyerror.ErrIncorrectRoomId
+		return 0, lobbyerror.ErrInvalidRoomID
 	}
 	return room.JoinRoom()
 }
@@ -80,7 +80,7 @@ func (s *Storage) LeaveRoom(roomId int, playerId int) error {
 	defer s.Unlock()
 	room, isExist := s.rooms[roomId]
 	if !isExist {
-		return lobbyerror.ErrIncorrectRoomId
+		return lobbyerror.ErrInvalidRoomID
 	}
 	err := room.LeaveRoom(playerId)
 	if room.LenRoom() == 0 {
@@ -94,7 +94,7 @@ func (s *Storage) Start(roomId int) (*room.Room, error) {
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, lobbyerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrInvalidRoomID
 	}
 	return room.Start()
 }
@@ -104,7 +104,7 @@ func (s *Storage) Move(roomId int, playerId int, playerMove int) (*room.Room, er
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
-		return nil, lobbyerror.ErrIncorrectRoomId
+		return nil, lobbyerror.ErrInvalidRoomID
 	}
 	return room.Move(playerId, playerMove)
 }

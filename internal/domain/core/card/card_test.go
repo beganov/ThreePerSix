@@ -39,7 +39,7 @@ func TestDecksUpdate(t *testing.T) {
 		expectedSecondArray []Card
 	}{
 		{"Delete first Card", []Card{{Val: 2}, {Val: 4}}, []Card{{Val: 2}, {Val: 4}}, 0, []Card{{Val: 2}, {Val: 4}, {Val: 2}}, []Card{{Val: 4}}},
-		{"Delete last Card", []Card{{Val: 2}, {Val: 4}}, []Card{{Val: 2}, {Val: 4}}, 1, []Card{{Val: 2}, {Val: 4}, {Val: 4}}, []Card{{Val: 2}}},
+		{"Delete last index Card", []Card{{Val: 2}, {Val: 4}}, []Card{{Val: 2}, {Val: 4}}, 1, []Card{{Val: 2}, {Val: 4}, {Val: 4}}, []Card{{Val: 2}}},
 		{"Delete last Card", []Card{{Val: 2}, {Val: 4}}, []Card{{Val: 2}}, 0, []Card{{Val: 2}, {Val: 4}, {Val: 2}}, []Card{}},
 	}
 
@@ -58,20 +58,27 @@ func TestDecksUpdate(t *testing.T) {
 	}
 }
 
-func TestCardDelete(t *testing.T) {
-
-	// resArray := isSpecial(6)
-
-	// if !reflect.DeepEqual(resArray, false) {
-	// 	t.Errorf("isSpecial mismatch: got %v, want %v", resArray, false)
-	// }
-}
-
 func TestSortCard(t *testing.T) {
 
-	// resArray := isSpecial(6)
+	tests := []struct {
+		name          string
+		array         []Card
+		expectedArray []Card
+	}{
+		{"Already sorted", []Card{{Val: 4}, {Val: 2}}, []Card{{Val: 4}, {Val: 2}}},
+		{"Need sorting", []Card{{Val: 2}, {Val: 4}}, []Card{{Val: 4}, {Val: 2}}},
+		{"Single element", []Card{{Val: 2}}, []Card{{Val: 2}}},
+		{"Equal element", []Card{{Id: 0, Val: 2}, {Id: 1, Val: 2}, {Id: 3, Val: 2}}, []Card{{Id: 0, Val: 2}, {Id: 1, Val: 2}, {Id: 3, Val: 2}}},
+		{"Empty element", []Card{}, []Card{}},
+	}
 
-	// if !reflect.DeepEqual(resArray, false) {
-	// 	t.Errorf("hands mismatch: got %v, want %v", resArray, false)
-	// }
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input1 := tt.array
+			SortCard(tt.array)
+			if !reflect.DeepEqual(tt.array, tt.expectedArray) {
+				t.Errorf("SortCard(%v) - Sorted Array %v, want %v", input1, tt.array, tt.expectedArray)
+			}
+		})
+	}
 }

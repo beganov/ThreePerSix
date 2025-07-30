@@ -2,9 +2,11 @@ package lobbyerror
 
 import "errors"
 
-var ErrIncorrectRoomId = errors.New("incorrect room id")
-var ErrIncorrectPlayerId = errors.New("incorrect player id")
-var ErrStart = errors.New("game already started")
-var ErrNotStart = errors.New("game not sterted yet")
-var ErrFullRoom = errors.New("room already full")
-var ErrMaxPlayerCount = errors.New("incorrect Max Player setting")
+var (
+	ErrInvalidRoomID          = errors.New("invalid room ID")
+	ErrInvalidPlayerID        = errors.New("invalid player ID")
+	ErrGameAlreadyStarted     = errors.New("game has already started")
+	ErrGameNotStarted         = errors.New("game has not started yet")
+	ErrRoomIsFull             = errors.New("room is full")
+	ErrInvalidMaxPlayersCount = errors.New("invalid max players count")
+)
