@@ -1,3 +1,9 @@
+// @title 3x6 API
+// @version 1.0
+// @description API для игры "3 по 6"
+// @host localhost:8080
+// @BasePath /
+// @schemes http
 package main
 
 import (

@@ -77,6 +77,84 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Удаляет комнату по её ID",
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Удалить комнату",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Комната успешно удалена"
+                    },
+                    "400": {
+                        "description": "Некорректный ID комнаты",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Комната не найдена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Позволяет изменить настройки комнаты (например, макс. число игроков)",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Обновить параметры комнаты",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Обновляемые параметры",
+                        "name": "roomPatch",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/room.RoomUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Комната успешно обновлена"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Комната не найдена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
         },
         "/rooms/{id}/join": {
@@ -116,6 +194,145 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Ошибка присоединения (например, комната полна)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/leave": {
+            "delete": {
+                "description": "Удаляет игрока из комнаты по его ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Покинуть комнату",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные игрока",
+                        "name": "player",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/player.Player"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Игрок покинул комнату"
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Ошибка выхода из комнаты",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/move": {
+            "post": {
+                "description": "Позволяет игроку совершить ход в указанной комнате",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Совершить ход",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные игрока с выбранным ходом",
+                        "name": "player",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/player.Player"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение об успешном ходе",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Ход невозможен",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/start": {
+            "post": {
+                "description": "Запускает игру в указанной комнате",
+                "tags": [
+                    "game"
+                ],
+                "summary": "Начать игру",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Комната с обновлённым состоянием",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Ошибка запуска игры",
                         "schema": {
                             "type": "string"
                         }
@@ -203,6 +420,17 @@ const docTemplate = `{
                 }
             }
         },
+        "player.Player": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "move": {
+                    "type": "integer"
+                }
+            }
+        },
         "room.Room": {
             "type": "object",
             "properties": {
@@ -231,18 +459,26 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "room.RoomUpdate": {
+            "type": "object",
+            "properties": {
+                "maxPlayerCount": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
+	Schemes:          []string{"http"},
+	Title:            "3x6 API",
+	Description:      "API для игры \"3 по 6\"",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

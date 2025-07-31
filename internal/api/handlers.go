@@ -59,6 +59,15 @@ func (gs *gameServer) getRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, room)
 }
 
+// deleteRoom удаляет комнату по её ID
+// @Summary      Удалить комнату
+// @Description  Удаляет комнату по её ID
+// @Tags         rooms
+// @Param        id   path      int  true  "ID комнаты"
+// @Success      204  "Комната успешно удалена"
+// @Failure      400  {string}  string  "Некорректный ID комнаты"
+// @Failure      404  {string}  string  "Комната не найдена"
+// @Router       /rooms/{id}/ [delete]
 func (gs *gameServer) deleteRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -75,6 +84,17 @@ func (gs *gameServer) deleteRoom(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// patchRoom обновляет параметры комнаты
+// @Summary      Обновить параметры комнаты
+// @Description  Позволяет изменить настройки комнаты (например, макс. число игроков)
+// @Tags         rooms
+// @Accept       json
+// @Param        id   path      int  true  "ID комнаты"
+// @Param        roomPatch  body  room.RoomUpdate  true  "Обновляемые параметры"
+// @Success      204  "Комната успешно обновлена"
+// @Failure      400  {string}  string  "Некорректные данные запроса"
+// @Failure      404  {string}  string  "Комната не найдена"
+// @Router       /rooms/{id}/ [patch]
 func (gs *gameServer) patchRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -120,6 +140,17 @@ func (gs *gameServer) joinRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"playerId": playerID})
 }
 
+// leaveRoom удаляет игрока из комнаты
+// @Summary      Покинуть комнату
+// @Description  Удаляет игрока из комнаты по его ID
+// @Tags         rooms
+// @Accept       json
+// @Param        id   path      int  true  "ID комнаты"
+// @Param        player  body  player.Player  true  "Данные игрока"
+// @Success      204  "Игрок покинул комнату"
+// @Failure      400  {string}  string  "Некорректный ID"
+// @Failure      409  {string}  string  "Ошибка выхода из комнаты"
+// @Router       /rooms/{id}/leave [delete]swag init
 func (gs *gameServer) leaveRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -139,6 +170,15 @@ func (gs *gameServer) leaveRoom(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// start запускает игру в комнате
+// @Summary      Начать игру
+// @Description  Запускает игру в указанной комнате
+// @Tags         game
+// @Param        id   path      int  true  "ID комнаты"
+// @Success      200  {object}  map[string]interface{}  "Комната с обновлённым состоянием"
+// @Failure      400  {string}  string  "Некорректный ID"
+// @Failure      409  {string}  string  "Ошибка запуска игры"
+// @Router       /rooms/{id}/start [post]
 func (gs *gameServer) start(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -153,6 +193,17 @@ func (gs *gameServer) start(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"room": room})
 }
 
+// move выполняет ход игрока в рамках игры
+// @Summary      Совершить ход
+// @Description  Позволяет игроку совершить ход в указанной комнате
+// @Tags         game
+// @Accept       json
+// @Param        id   path      int  true  "ID комнаты"
+// @Param        player  body  player.Player  true  "Данные игрока с выбранным ходом"
+// @Success      200  {object}  map[string]string  "Сообщение об успешном ходе"
+// @Failure      400  {string}  string  "Некорректные данные"
+// @Failure      409  {string}  string  "Ход невозможен"
+// @Router       /rooms/{id}/move [post]
 func (gs *gameServer) move(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
@@ -169,8 +220,6 @@ func (gs *gameServer) move(c *gin.Context) {
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
-	//debugPrintGameState(game)
-	//time.Sleep(100) // эта вещь точно работала, строчку ниже не тестил, но по логике должна
 	c.JSON(http.StatusOK, gin.H{"message": "move accepted"})
 }
 

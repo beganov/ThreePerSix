@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   card.Card:
     properties:
@@ -51,6 +52,13 @@ definitions:
       turn:
         type: integer
     type: object
+  player.Player:
+    properties:
+      id:
+        type: integer
+      move:
+        type: integer
+    type: object
   room.Room:
     properties:
       gamestates:
@@ -70,8 +78,17 @@ definitions:
           type: integer
         type: object
     type: object
+  room.RoomUpdate:
+    properties:
+      maxPlayerCount:
+        type: integer
+    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: API для игры "3 по 6"
+  title: 3x6 API
+  version: "1.0"
 paths:
   /rooms/:
     post:
@@ -89,6 +106,28 @@ paths:
       tags:
       - rooms
   /rooms/{id}/:
+    delete:
+      description: Удаляет комнату по её ID
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Комната успешно удалена
+        "400":
+          description: Некорректный ID комнаты
+          schema:
+            type: string
+        "404":
+          description: Комната не найдена
+          schema:
+            type: string
+      summary: Удалить комнату
+      tags:
+      - rooms
     get:
       description: Возвращает информацию о комнате по её ID
       parameters:
@@ -113,6 +152,36 @@ paths:
           schema:
             type: string
       summary: Получить информацию о комнате
+      tags:
+      - rooms
+    patch:
+      consumes:
+      - application/json
+      description: Позволяет изменить настройки комнаты (например, макс. число игроков)
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновляемые параметры
+        in: body
+        name: roomPatch
+        required: true
+        schema:
+          $ref: '#/definitions/room.RoomUpdate'
+      responses:
+        "204":
+          description: Комната успешно обновлена
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            type: string
+        "404":
+          description: Комната не найдена
+          schema:
+            type: string
+      summary: Обновить параметры комнаты
       tags:
       - rooms
   /rooms/{id}/join:
@@ -145,4 +214,98 @@ paths:
       summary: Присоединиться к комнате
       tags:
       - rooms
+  /rooms/{id}/leave:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет игрока из комнаты по его ID
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные игрока
+        in: body
+        name: player
+        required: true
+        schema:
+          $ref: '#/definitions/player.Player'
+      responses:
+        "204":
+          description: Игрок покинул комнату
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "409":
+          description: Ошибка выхода из комнаты
+          schema:
+            type: string
+      summary: Покинуть комнату
+      tags:
+      - rooms
+  /rooms/{id}/move:
+    post:
+      consumes:
+      - application/json
+      description: Позволяет игроку совершить ход в указанной комнате
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные игрока с выбранным ходом
+        in: body
+        name: player
+        required: true
+        schema:
+          $ref: '#/definitions/player.Player'
+      responses:
+        "200":
+          description: Сообщение об успешном ходе
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректные данные
+          schema:
+            type: string
+        "409":
+          description: Ход невозможен
+          schema:
+            type: string
+      summary: Совершить ход
+      tags:
+      - game
+  /rooms/{id}/start:
+    post:
+      description: Запускает игру в указанной комнате
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Комната с обновлённым состоянием
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "409":
+          description: Ошибка запуска игры
+          schema:
+            type: string
+      summary: Начать игру
+      tags:
+      - game
+schemes:
+- http
 swagger: "2.0"
