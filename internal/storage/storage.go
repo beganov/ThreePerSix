@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"sync"
 
 	"github.com/beganov/gingonicserver/internal/domain/room"
@@ -89,14 +90,14 @@ func (s *Storage) LeaveRoom(roomId int, playerId int) error {
 	return err
 }
 
-func (s *Storage) Start(roomId int) (*room.Room, error) {
+func (s *Storage) Start(roomId int, ctx context.Context) (*room.Room, error) {
 	s.RLock()
 	room, isExist := s.rooms[roomId]
 	s.RUnlock()
 	if !isExist {
 		return nil, lobbyerror.ErrInvalidRoomID
 	}
-	return room.Start()
+	return room.Start(ctx)
 }
 
 func (s *Storage) Move(roomId int, playerId int, playerMove int) error {

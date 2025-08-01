@@ -8,6 +8,7 @@ import (
 	"github.com/beganov/gingonicserver/internal/domain/room"
 	"github.com/beganov/gingonicserver/internal/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 
 	lobbyerror "github.com/beganov/gingonicserver/internal/errors"
 )
@@ -29,7 +30,9 @@ func NewServer() *gameServer {
 // @Success      201  {object}  map[string]string  "roomId и playerId"
 // @Router       /rooms/ [post]
 func (gs *gameServer) createRoom(c *gin.Context) {
+	logger := zerolog.Ctx(c.Request.Context())
 	roomId, playerID := gs.store.CreateRoom()
+	logger.Info().Int("roomId", roomId).Int("playerID", playerID).Msg("creating room")
 	c.JSON(http.StatusCreated, gin.H{"roomId": roomId, "playerId": playerID})
 }
 
@@ -44,18 +47,21 @@ func (gs *gameServer) createRoom(c *gin.Context) {
 // @Failure      404  {string}  string     "Комната не найдена"
 // @Router       /rooms/{id}/ [get]
 func (gs *gameServer) getRoom(c *gin.Context) {
+	logger := zerolog.Ctx(c.Request.Context())
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 
 	room, err := gs.store.GetRoom(roomId)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusNotFound, formatError(err))
 		return
 	}
-
+	logger.Info().Int("roomId", roomId).Msg("getting room")
 	c.JSON(http.StatusOK, room)
 }
 
@@ -69,18 +75,21 @@ func (gs *gameServer) getRoom(c *gin.Context) {
 // @Failure      404  {string}  string  "Комната не найдена"
 // @Router       /rooms/{id}/ [delete]
 func (gs *gameServer) deleteRoom(c *gin.Context) {
+	logger := zerolog.Ctx(c.Request.Context())
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 
 	err = gs.store.DeleteRoom(roomId)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusNotFound, formatError(err))
 		return
 	}
-
+	logger.Info().Int("roomId", roomId).Msg("deleting room")
 	c.Status(http.StatusNoContent)
 }
 
@@ -97,22 +106,26 @@ func (gs *gameServer) deleteRoom(c *gin.Context) {
 // @Router       /rooms/{id}/ [patch]
 func (gs *gameServer) patchRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
+	logger := zerolog.Ctx(c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 	var roomPatch room.RoomUpdate
 	if err := c.ShouldBindJSON(&roomPatch); err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidMaxPlayersCount.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidMaxPlayersCount))
 		return
 	}
 
 	err = gs.store.PatchRoom(roomId, roomPatch)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusNotFound, formatError(err))
 		return
 	}
-
+	logger.Info().Int("roomId", roomId).Interface("patch", roomPatch).Msg("patching room")
 	c.Status(http.StatusNoContent)
 }
 
@@ -128,15 +141,19 @@ func (gs *gameServer) patchRoom(c *gin.Context) {
 // @Router       /rooms/{id}/join [post]swag init
 func (gs *gameServer) joinRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
+	logger := zerolog.Ctx(c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 	playerID, err := gs.store.JoinRoom(roomId)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
+	logger.Info().Int("roomId", roomId).Int("playerId", playerID).Msg("joining room")
 	c.JSON(http.StatusOK, gin.H{"playerId": playerID})
 }
 
@@ -153,20 +170,25 @@ func (gs *gameServer) joinRoom(c *gin.Context) {
 // @Router       /rooms/{id}/leave [delete]swag init
 func (gs *gameServer) leaveRoom(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
+	logger := zerolog.Ctx(c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 	var currentPlayer player.Player
 	if err := c.ShouldBindJSON(&currentPlayer); err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidPlayerID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidPlayerID))
 		return
 	}
 	err = gs.store.LeaveRoom(roomId, currentPlayer.Id)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
+	logger.Info().Int("roomId", roomId).Int("playerId", currentPlayer.Id).Msg("leaving room")
 	c.Status(http.StatusNoContent)
 }
 
@@ -181,15 +203,19 @@ func (gs *gameServer) leaveRoom(c *gin.Context) {
 // @Router       /rooms/{id}/start [post]
 func (gs *gameServer) start(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
+	logger := zerolog.Ctx(c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
-	room, err := gs.store.Start(roomId)
+	room, err := gs.store.Start(roomId, c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
+	logger.Info().Interface("room", room).Msg("game started")
 	c.JSON(http.StatusOK, gin.H{"room": room})
 }
 
@@ -206,20 +232,25 @@ func (gs *gameServer) start(c *gin.Context) {
 // @Router       /rooms/{id}/move [post]
 func (gs *gameServer) move(c *gin.Context) {
 	roomId, err := strconv.Atoi(c.Params.ByName("id"))
+	logger := zerolog.Ctx(c.Request.Context())
 	if err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidRoomID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidRoomID))
 		return
 	}
 	var currentPlayer player.Player
 	if err := c.ShouldBindJSON(&currentPlayer); err != nil {
+		logger.Error().Err(err).Msg(lobbyerror.ErrInvalidPlayerID.Error())
 		c.String(http.StatusBadRequest, formatError(lobbyerror.ErrInvalidPlayerID))
 		return
 	}
 	err = gs.store.Move(roomId, currentPlayer.Id, currentPlayer.Move)
 	if err != nil {
+		logger.Error().Err(err).Msg(err.Error())
 		c.String(http.StatusConflict, formatError(err))
 		return
 	}
+	logger.Info().Int("roomId", roomId).Int("playerId", currentPlayer.Id).Int("Move", currentPlayer.Move).Msg("move accepted")
 	c.JSON(http.StatusOK, gin.H{"message": "move accepted"})
 }
 

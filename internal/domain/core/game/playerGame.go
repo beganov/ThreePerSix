@@ -1,12 +1,14 @@
 package game
 
 import (
+	"context"
+
 	"github.com/beganov/gingonicserver/internal/domain/core/card"
 	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 )
 
-func (g *GameState) StartGame(maxPlayerCount int, Players map[int]int, end GameEndHandler) *GameState {
-	g.PreInitialization(maxPlayerCount, Players, end)
+func (g *GameState) StartGame(maxPlayerCount int, Players map[int]int, end GameEndHandler, ctx context.Context) *GameState {
+	g.PreInitialization(maxPlayerCount, Players, end, ctx)
 	go func() {
 		g.Initialization(maxPlayerCount)
 		g.Game(maxPlayerCount)

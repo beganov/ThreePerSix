@@ -1,6 +1,7 @@
 package room
 
 import (
+	"context"
 	"sync"
 
 	"github.com/beganov/gingonicserver/internal/domain/core/game"
@@ -97,14 +98,14 @@ func (r *Room) LeaveRoom(playerId int) error {
 	return nil
 }
 
-func (r *Room) Start() (*Room, error) {
+func (r *Room) Start(ctx context.Context) (*Room, error) {
 	r.Lock()
 	defer r.Unlock()
 	if r.IsStart {
 		return nil, lobbyerror.ErrGameAlreadyStarted
 	}
 	r.IsStart = true
-	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r)
+	r.GameStates = *r.GameStates.StartGame(r.MaxPlayerCount, r.Players, r, ctx)
 	return r, nil
 }
 
@@ -126,4 +127,10 @@ func (r *Room) OnGameEnd() {
 	r.IsStart = false
 
 	//r.GameStates = game.GameState{}
+}
+
+type Logger interface {
+	Debug(msg string, fields ...any)
+	Info(msg string, fields ...any)
+	Error(msg string, fields ...any)
 }

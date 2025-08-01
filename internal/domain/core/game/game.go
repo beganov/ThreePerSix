@@ -1,18 +1,21 @@
 package game
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/beganov/gingonicserver/internal/domain/core/card"
 	"github.com/beganov/gingonicserver/internal/domain/core/gameConst"
 	"github.com/beganov/gingonicserver/internal/domain/core/placement"
+	"github.com/rs/zerolog"
 )
 
-func (g *GameState) PreInitialization(maxPlayerCount int, Players map[int]int, end GameEndHandler) {
+func (g *GameState) PreInitialization(maxPlayerCount int, Players map[int]int, end GameEndHandler, ctx context.Context) {
 	g.Turn = 0
 	g.PlayerNow = 0
 	g.handler = end
+	g.logger = zerolog.Ctx(ctx)
 	g.IdMap, g.ch = ChannelsInit(Players)
 	g.Deck = card.NewDeck()
 	g.Hands, g.Closeds, g.Deck = card.HandInitialization(maxPlayerCount, g.Deck)
@@ -100,7 +103,7 @@ func (g *GameState) Game(maxPlayerCount int) {
 				_, ok := g.ReverceIdMap[i]
 				g.Turn = c
 				g.PlayerNow = i
-				outer(c, i, g.Out, g.Openeds, g.Closeds, g.Hands)
+				outer(c, i, g.Out, g.Openeds, g.Closeds, g.Hands, g.logger)
 				g.Hands[i], g.Out, cardState, flag, istake, g.IsMoved = card.GiveCardLogic(g.Hands[i], g.Out, cardState, i, ok, flag, istake, g.ch[g.ReverceIdMap[i]])
 				g.Deck, g.Hands[i], g.Openeds[i], g.Closeds[i] = card.TakeCard(g.Deck, g.Hands[i], g.Openeds[i], g.Closeds[i], istake)
 
@@ -108,7 +111,7 @@ func (g *GameState) Game(maxPlayerCount int) {
 		}
 
 	}
-	fmt.Println("GameEnd")
+	g.logger.Info().Msg("GameEnd")
 	g.Hands = [][]card.Card{}
 	g.Openeds = [][]card.Card{}
 	g.Closeds = [][]card.Card{}

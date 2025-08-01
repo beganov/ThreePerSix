@@ -34,17 +34,22 @@ func ArraytoMap(array []int, resMap map[int]int) map[int]int {
 	return resMap
 }
 
-func outer(c, i int, Out []card.Card, Openeds, Closeds, allHands [][]card.Card) {
+func outer(c, i int, Out []card.Card, Openeds, Closeds, allHands [][]card.Card, logger Logger) {
 	allHandsLens := make([]int, len(allHands))
 	allClosedsLens := make([]int, len(allHands))
 	for j := range allHands {
 		allHandsLens[j] = len(allHands[j])
 		allClosedsLens[j] = len(Closeds[j])
 	}
-	fmt.Printf("Turn:  %d\n", c)
-	fmt.Printf("Player:  %d\n", i)
-	fmt.Printf("Turn %d \n player %d hand: %v \n table %v \n Openeds %v \n", c, i, allHands[i], Out, Openeds)
-	fmt.Printf("Len Closeds %d, Len Hands %d", allClosedsLens, allHandsLens)
+	logger.Info().
+		Int("Turn", c).
+		Int("Player", i).
+		Interface("hand", allHands[i]).
+		Interface("table", Out).
+		Interface("Openeds", Openeds).
+		Interface("LenCloseds", allClosedsLens).
+		Interface("LenHands", allHandsLens).
+		Msg("Game state update")
 }
 
 func (g *GameState) String() string {

@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/beganov/gingonicserver/internal/domain/core/card"
+	"github.com/rs/zerolog"
 )
 
 type GameState struct {
@@ -20,8 +21,14 @@ type GameState struct {
 	ReverceIdMap map[int]int   //key = placement, value = playerId
 	ch           map[int]chan int
 	handler      GameEndHandler
+	logger       Logger
 }
 
 type GameEndHandler interface {
 	OnGameEnd()
+}
+
+type Logger interface {
+	Info() *zerolog.Event
+	Error() *zerolog.Event
 }
