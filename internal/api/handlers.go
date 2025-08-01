@@ -14,10 +14,10 @@ import (
 )
 
 type gameServer struct {
-	store *storage.Storage
+	store *storage.Storage // хранилище для управления комнатами
 }
 
-func NewServer() *gameServer {
+func NewServer() *gameServer { // NewServer инициализирует новый экземпляр игрового сервера.
 	store := storage.NewStorage()
 	return &gameServer{store: store}
 }
@@ -254,7 +254,7 @@ func (gs *gameServer) move(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "move accepted"})
 }
 
-func formatError(err error) string {
+func formatError(err error) string { // formatError преобразует ошибки в читаемые строки для пользователя.
 	switch err {
 	case lobbyerror.ErrRoomIsFull:
 		return "Извините, комната уже полная."

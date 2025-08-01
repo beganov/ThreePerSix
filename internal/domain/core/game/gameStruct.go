@@ -7,28 +7,28 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type GameState struct {
+type GameState struct { // Объект игры
 	sync.Mutex   `json:"-" swaggerignore:"true"`
-	Deck         []card.Card   `json:"deck,omitempty"`
-	Out          []card.Card   `json:"out,omitempty"`
-	Hands        [][]card.Card `json:"hands,omitempty"`
-	Openeds      [][]card.Card `json:"openeds,omitempty"`
-	Closeds      [][]card.Card `json:"closeds,omitempty"`
-	PlayerNow    int           `json:"playerNow,omitempty"`
-	Turn         int           `json:"turn,omitempty"`
-	IsMoved      bool          `json:"isMoved,omitempty"`
-	IdMap        map[int]int   `json:"idMap,omitempty"` //key = playerId, value = placement
-	ReverceIdMap map[int]int   //key = placement, value = playerId
-	ch           map[int]chan int
-	handler      GameEndHandler
-	logger       Logger
+	Deck         []card.Card      `json:"deck,omitempty"`      // Колода
+	Out          []card.Card      `json:"out,omitempty"`       // Массив карт в игре, то что на столе
+	Hands        [][]card.Card    `json:"hands,omitempty"`     // Массив рук игроков
+	Openeds      [][]card.Card    `json:"openeds,omitempty"`   // Массив открытых карт
+	Closeds      [][]card.Card    `json:"closeds,omitempty"`   // Массив закрытых карт
+	PlayerNow    int              `json:"playerNow,omitempty"` // Номер за столом ходящего сейчас игрока
+	Turn         int              `json:"turn,omitempty"`      // Номер хода
+	IsMoved      bool             `json:"isMoved,omitempty"`   // Ходил ли игрок или нет, используется для фронта
+	IdMap        map[int]int      `json:"idMap,omitempty"`     // Мапа для поиска номера игрока за столом по его id; key = playerId, value = placement
+	ReverceIdMap map[int]int      // Мапа для поиска id игрока по его номеру столом; key = placement, value = playerId
+	ch           map[int]chan int // Мапа каналов, для передачи хода игроками; key = playerId, value = chanel
+	handler      GameEndHandler   // Интерфейс комнаты, вызываемый при завершении игры
+	logger       Logger           // Интерфейс логгера
 }
 
-type GameEndHandler interface {
+type GameEndHandler interface { //Интерфейс обратного вызова, реализуемый комнатой (room.Room). Вызывается при завершении игры.
 	OnGameEnd()
 }
 
-type Logger interface {
+type Logger interface { // Интерфейс логгера
 	Info() *zerolog.Event
 	Error() *zerolog.Event
 }
